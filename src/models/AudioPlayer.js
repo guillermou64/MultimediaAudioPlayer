@@ -30,7 +30,7 @@ class AudioPlayer {
             add: null
         }
 
-        this._loadSong(src);
+        this._loadSong(params.songs);
 
         if (params.hasOwnProperty("buttons")) {
             var { queue, volume, back, playPause, next, add } = params.buttons;
@@ -38,19 +38,20 @@ class AudioPlayer {
         }
 
     }
-
-    _loadSong(src) {
-        this.player.src = src;
+    
+    _loadSong(songs) {
+        this.player.src = songs[0].file;
         this.player.onloadedmetadata = () => {
             this.gui = {
                 totalTime: { value: this.player.duration, DOMElement: this.gui.totalTime.DOMElement },
-                currentTime: { value: 0, DOMElement: this.gui.currentTime.DOMElement }
+                currentTime: { value: 0, DOMElement: this.gui.currentTime.DOMElement },
+                albumCover: { value: songs[0].cover, DOMElement: this.gui.albumCover.DOMElement }
             }
         }
         this.player.ontimeupdate = () => {
             //console.log(this.player.currentTime);
             this.gui = {
-                currentTime: { value: this.player.currentTime, DOMElement: this.gui.currentTime.DOMElement }
+                currentTime: { value: this.player.currentTime, DOMElement: this.gui.currentTime.DOMElement },
             }
             var [totalTime, currentTime] = [this.gui.totalTime.value, this.gui.currentTime.value];
             var progress = (currentTime / totalTime) * 100;
@@ -58,6 +59,15 @@ class AudioPlayer {
             pBar.style.width = `${progress}%`;
         }
     }
+
+    _secondstominutes(a){
+
+        return (a/60).toFixed(2).replace('.',':');
+
+    }
+
+
+
 
     _initGUI(...params) {
         this.gui = {
@@ -157,7 +167,20 @@ class AudioPlayer {
                 let x = e.offsetX;
                 let w = this.gui.progressBar.DOMElement.offsetWidth;
                 let newCurrentTime = this.gui.totalTime.value * (x/w);
+                //cargar el tiempo en minutow
+               
+
+                
+                
                 this.player.currentTime = newCurrentTime;
+
+
+                //let parseadocurrent, parseadototal
+                //parseadocurrent=newCurrentTime/60;
+                //parseadototal=this.gui.currentTime/60;
+
+                //console.log (parseadocurrent + " "+ parseadototal )
+
                 this.gui = {
                     currentTime: {value: newCurrentTime, DOMElement: this.gui.currentTime.DOMElement}
                 }
@@ -166,11 +189,24 @@ class AudioPlayer {
         this._assignValues(this._gui, elments, actions);
         this._updateBasigGUIElement(this.gui.totalTime);
         this._updateBasigGUIElement(this.gui.currentTime);
+        this._updateBasigGUIElement(this.gui.albumCover);
+
+        //this._updateBasigGUIElement(this._secondstominutes(currentTime));
     }
+
+
+
 
     _updateBasigGUIElement(el) {
         if (el.DOMElement instanceof HTMLElement) {
-            el.DOMElement.innerHTML = el.value;
+            //console.log(el.DOMElement.id)
+            if(el.DOMElement.id == "player"){
+                el.DOMElement.style.background = `url("${el.value}")`;
+                el.DOMElement.style.backgroundSize = `cover`;
+            }else{
+
+                el.DOMElement.innerHTML = this._secondstominutes(el.value);
+            }
         }
     }
 
